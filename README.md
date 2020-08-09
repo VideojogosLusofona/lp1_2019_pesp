@@ -20,7 +20,7 @@ Este modelo explora um ecossistema de três espécies, pedras (cor azul), papéi
 simulação. As interações entre as espécies são baseadas no jogo
 [Pedra, Papel e Tesoura], ou seja, tesoura vence papel, papel vence pedra, e
 pedra vence tesoura. Os organismos competem com os seus vizinhos, movem-se no
-mundo e reproduzem-se. Estas interações resultam em padrões em espiral cujo
+mundo e reproduzem-se. Estas interações resultam em padrões de espiral cujo
 tamanho e estabilidade dependem dos parâmetros da simulação.
 
 O modelo está implementado como [exemplo][RPSNetLogo] no software [NetLogo]
@@ -32,8 +32,8 @@ que pode e deve ser usada como termo de comparação ao projeto desenvolvido.
 ### O modelo de simulação
 
 A simulação corre numa grelha com dimensões (`x`, `y`) toroidal com vizinhança
-de [Von Neumann]. Toroidal significa que a grelha "dá a volta" na vertical e
-na horizontal, ou seja, na prática não tem paredes.
+de [Von Neumann] de raio 1. Toroidal significa que a grelha "dá a volta" na
+vertical e na horizontal, ou seja, na prática não tem paredes.
 
 Cada célula da grelha pode estar ocupada por uma das três espécies ou estar
 vazia (neste caso assume a cor de fundo do terminal). A simulação funciona por
@@ -51,7 +51,7 @@ turnos e em cada turno podem acontecer os seguintes eventos:
 3. Evento de **Seleção**:
    * Duas células vizinhas são aleatoriamente escolhidas.
    * Os seus ocupantes competem um com o outro segundo as regras do
-     [Pedra, Papel e Tesoura]
+     [Pedra, Papel e Tesoura].
    * A célula do vizinho perdedor torna-se vazia.
    * Caso alguma das células escolhidas seja vazia, nada acontece.
 
@@ -62,7 +62,7 @@ A simulação tem cinco parâmetros:
 * `ydim` - Número inteiro que representa a dimensão vertical da grelha
   de simulação.
 * `swap_rate_exp`, número real entre -1.0 e 1.0, que representa a taxa dos
-  eventos de trocas/movimento.
+  eventos de troca/movimento.
 * `repr_rate_exp`, número real entre -1.0 e 1.0, que representa a taxa dos
   eventos de reprodução.
 * `selc_rate_exp`, número real entre -1.0 e 1.0, que representa a taxa dos
@@ -73,13 +73,14 @@ aleatoriamente através de uma [distribuição de Poisson], que expressa a
 probabilidade de uma série de eventos ocorrer num certo período de tempo. Uma
 vez que este é um projeto de programação, não é exigido aos alunos que
 compreendam a fundo esta distribuição, apenas que consigam implementar um
-método que aceite um valor real que representa a média, `λ`, e que devolva
-um número inteiro aleatório obtido através desta distribuição. A secção
+método chamado `Poisson()` que aceite um valor real `λ` (média da
+distribuição) e devolva um número inteiro aleatório obtido através desta
+distribuição. A secção
 [Gerar inteiros aleatórios a partir da distribuição de Poisson](#gerar-inteiros-aleatórios-a-partir-da-distribuição-de-poisson) discute
 possíveis abordagens. Uma possível declaração deste método é a seguinte:
 
 ```cs
-int Poisson(double lambda);
+private int Poisson(double lambda);
 ```
 
 O número exato de eventos em cada turno é então obtido através do método
@@ -89,12 +90,12 @@ O número exato de eventos em cada turno é então obtido através do método
 double lambda = (xdim * ydim / 3.0) * Math.Pow(10, rate_exp);
 ```
 
-em que `rate_exp` pode ser `swap_rate_exp`, `repr_rate_exp` ou
+A variável `rate_exp` pode ser `swap_rate_exp`, `repr_rate_exp` ou
 `selc_rate_exp`, dependendo do tipo de evento em questão. Por exemplo, o
 número de trocas/movimentos num dado turno pode ser dado por:
 
 ```cs
-// Obter o lambda para as trocas/movimentos
+// Obter o lambda λ, valor médio das trocas/movimentos
 // Notar que este valor é constante ao longo da simulação
 double lambdaSwap = (xdim * ydim / 3.0) * Math.Pow(10, swap_rate_exp);
 
@@ -103,14 +104,14 @@ int numSwaps = Poisson(lambdaSwap);
 ```
 
 Uma vez obtido o número de cada tipo de eventos para o turno atual, os mesmos
-devem ser individualmente colocados numa lista, essa lista deve ser
+devem ser individualmente colocados numa lista. Essa lista deve ser então
 embaralhada (ver secção
 [Embaralhar uma lista ou _array_](#embaralhar-uma-lista-ou-array)), e
-finalmente percorrida, de modo a que cada evento seja executado. Notar que a
-ideia é que os eventos sejam executados de forma aleatória. Por exemplo, se
-num dado turno devem ser executadas 3 trocas, 4 reproduções e 2 seleções
+finalmente percorrida, de modo a que cada evento seja executado. A ideia
+é que os eventos sejam executados numa ordem aleatória. Por exemplo, se
+num dado turno serão executadas 3 trocas, 4 reproduções e 2 seleções
 (valores obtidos aleatoriamente a partir da distribuição de Poisson), a
-lista com estes eventos deverá ter inicialmente o seguinte aspeto:
+lista com estes eventos deverá ter inicialmente o seguinte conteúdo:
 
 ```
 Swap
@@ -124,7 +125,7 @@ Selection
 Selection
 ```
 
-Após o embaralhamento poderá ter outro aspeto:
+Após o embaralhamento a ordem dos conteúdos é randomizada:
 
 ```
 Reproduction
@@ -138,8 +139,8 @@ Swap
 Reproduction
 ```
 
-Só agora é que a lista deverá ser percorrida, e cada um dos eventos indicados
-executado para o turno atual.
+É nesta fase, após o embaralhamento, que a lista deve ser percorrida, e cada
+um dos eventos executado para o turno atual.
 
 ### Visualização
 
@@ -177,14 +178,14 @@ conteúdos:
 * Opção `repr-rate-exp`, seguida de um número real (`double`) entre -1.0 e 1.0.
 * Opção `selc-rate-exp`, seguida de um número real (`double`) entre -1.0 e 1.0.
 * Entre cada opção e o seu valor deve existir um espaço.
-* Espaços no início das linhas devem ser ignorados.
-* Linhas em branco ou começadas por `#` ou `//` devem ser ignoradas, pois são
-  consideradas comentários.
+* Espaços no início e fim das linhas devem ser ignorados.
+* Linhas em branco ou começadas por `#` ou `//` devem ser ignoradas, sendo
+  estas últimas consideradas comentários.
 
 As opções indicadas podem ser dadas em qualquer ordem. Se alguma delas for
 omitida o programa deve terminar com uma mensagem de erro indicando a opção em
 falta. Opções desconhecidas ou com valores inválidos também fazem com que o
-programa termine, indicando exatamente qual a linha inválida do ficheiro.
+programa termine embora indicando exatamente qual a linha inválida encontrada.
 Exemplo de um ficheiro válido:
 
 ```
@@ -199,8 +200,8 @@ ydim 40
 ```
 
 Notar que podem existir problemas no _parsing_ dos valores reais devido ao
-separador decimal ser uma vírgula na língua portuguesa (ver secção
-[_Parsing_ de números reais](#parsing-de-números-reais).
+separador decimal ser uma vírgula e não um ponto na língua portuguesa (ver
+secção [_Parsing_ de números reais](#parsing-de-números-reais)).
 Se as opções forem corretas, a simulação começa imediatamente, não existindo
 quaisquer paragens ou demoras entre turnos. A simulação deve correr o mais
 rapidamente possível (ver secção [Eficiência do código](#eficiência-do-código)).
@@ -214,12 +215,12 @@ uma tecla.
 
 Resumindo, a simulação é executada de acordo com os seguintes passos:
 
-1. Criar o mundo, cada célula inicializada aleatoriamente (pedra, papel,
-   tesoura, vazia).
+1. Criar o mundo de simulação, cada célula inicializada aleatoriamente (pedra,
+   papel, tesoura, vazia).
 2. Determinar número de eventos de troca/movimento, reprodução e seleção,
-   a partir da distribuição de Poisson tal como explicado na secção
-   anterior.
-3. Colocar numa lista esses eventos, um a um.
+   a partir da distribuição de Poisson tal como explicado nas secções
+   anteriores.
+3. Colocar esses eventos numa lista, um a um.
 4. Embaralhar a lista.
 5. Percorrer a lista e executar esses eventos, um a um.
 6. Limpar a lista.
@@ -227,20 +228,20 @@ Resumindo, a simulação é executada de acordo com os seguintes passos:
 8. Se utilizador pressionou a tecla `Escape` terminar a simulação, caso
    contrário voltar para o ponto 2.
 
-### Dicas
+### Dicas e sugestões
 
 #### Gerar inteiros aleatórios a partir da distribuição de Poisson
 
 Um gerador de números aleatórios obtidos a partir da distribuição de Poisson
 recebe um valor real `λ` (média dos números aleatórios a devolver) e devolve
-um número inteiro que corresponde a um número aleatório de eventos.
+um número inteiro que corresponde ao número (aleatório) de eventos.
 
 A linguagem C# apenas oferece a classe [Random], que produz números aleatórios
 a partir da [distribuição uniforme]. O Wikipédia sugere [alguns
 algoritmos](genPoisson) para obter valores a partir da distribuição de
 Poisson tendo como base a distribuição uniforme. No entanto, apenas o segundo,
 "**algorithm** _poisson random number (Junhao, based on Knuth)_",
-funciona bem com valores elevados de `λ` (algo que vai ocorrer neste projeto).
+funciona bem com valores elevados de `λ`, necessários para este projeto.
 Na parte do algoritmo que diz _Generate uniform random number u  in (0,1)_
 pode ser usado o método [`NextDouble()`] da classe [Random] para obter
 valores aleatórios uniformes entre 0 e 1. Todas as variáveis internas deste algoritmo devem ser `double`, exceto a variável `k`, que deve ser
@@ -279,8 +280,8 @@ A última forma é a preferida, pois permite-nos verificar se a conversão foi
 inválida. No entanto pode ocorrer um problema caso o PC esteja configurado com
 a língua portuguesa, na qual o separador decimal é uma vírgula e não um ponto.
 Para evitar este problema, podemos indicar ao C# que pretendemos uma conversão
-independente da língua configurada no computador, assumindo o separador
-decimal como um ponto:
+independente da língua configurada no computador, assumindo o ponto como
+separador decimal:
 
 ```cs
 // Requer using extra no início da classe
@@ -324,16 +325,20 @@ nota.
 
 ### Eficiência do código
 
-Existem variadíssimas formas de implementar esta simulação corretamente.
+Existem várias formas de implementar esta simulação corretamente.
 Soluções mais eficientes (que executem a simulação mais rapidamente) serão
 bonificadas na nota. Todas as otimizações implementadas devem ser mencionadas
-no relatório. Algumas sugestões:
+no relatório. Duas sugestões mutuamente exclusivas (i.e., não podem ser
+usadas em conjunto):
 
-* Atualizar apenas as células que foram modificadas e não todas.
+* Atualizar apenas as células que foram modificadas num turno e não todas.
 * Atualizar o mundo de uma só vez (com um único `Console.Write()`), pré-criando
   uma _string_ com todos os seus conteúdos (isto requer o uso de [sequências de
   _escape_ ANSI](https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences), indo além da formatação de cores
-  disponível na classe `Console`).
+  disponível na classe `Console`). A forma mais eficiente de "ir construíndo"
+  uma _string_ é através de um
+  [`StringBuilder`](https://docs.microsoft.com/dotnet/api/system.text.stringbuilder),
+  e não com concatenação.
 
 Estas otimizações só devem ser efetuadas após a simulação estar completamente
 funcional, e é perfeitamente possível ter nota máxima, ou perto disso, sem a
