@@ -15,17 +15,67 @@ work. If not, see <http://creativecommons.org/licenses/by-nc-sa/4.0/>.
 Os grupos devem implementar uma versão 2D do jogo [Pedra, Papel e Tesoura]
 na forma de uma aplicação de consola .NET Core na linguagem C#.
 
-## Modelo para simulação
+Este modelo explora um ecossistema de três espécies, pedras (cor azul), papéis
+(cor verde) e tesouras (cor vermelha), que competem por espaço no mundo de
+simulação. As interações entre as espécies são baseadas no jogo
+[Pedra, Papel e Tesoura], ou seja, tesoura vence papel, papel vence pedra, e
+pedra vence tesoura. Os organismos competem com os seus vizinhos, movem-se no
+mundo e reproduzem-se. Estas interações resultam em padrões em espiral cujo
+tamanho e estabilidade dependem dos parâmetros da simulação.
 
-A simulação corre numa grelha _x_ x _y_ toroidal com vizinhança de
-[Von Neumann]. Num mapa toroidal, a grelha "dá a volta" na vertical e na
-horizontal, ou seja, na prática não tem paredes.
+O modelo está implementado como [exemplo][RPSNetLogo] no software [NetLogo]
+(aberto e gratuito, também corre diretamente no _browser_), implementação esta
+que pode e deve ser usada como termo de comparação ao projeto desenvolvido.
+
+## Descrição detalhada
+
+A simulação corre numa grelha com dimensões (`x`, `y`) toroidal com vizinhança
+de [Von Neumann]. Toroidal significa que a grelha "dá a volta" na vertical e
+na horizontal, ou seja, na prática não tem paredes.
+
+Cada célula da grelha pode estar ocupada por uma das três espécies ou estar
+vazia (neste caso assume a cor de fundo do terminal). A simulação funciona por
+turnos e em cada turno podem acontecer os seguintes eventos:
+
+1. Evento de **Troca/Movimento**:
+   * Duas células vizinhas são aleatoriamente escolhidas.
+   * O estado de cada uma das células passa a ser o estado da célula vizinha
+     (ou seja, as células trocam de estado).
+2. Evento de **Reprodução**:
+   * Duas células vizinhas são aleatoriamente escolhidas.
+   * Se uma das células for vazia passa a ser ocupada por um elemento da
+     espécie na célula vizinha.
+   * Nada acontece se nenhuma das células ou ambas as células forem vazias.
+3. Evento de **Seleção**:
+   * Duas células vizinhas são aleatoriamente escolhidas.
+   * Os seus ocupantes competem um com o outro segundo as regras do
+     [Pedra, Papel e Tesoura]
+   * A célula do vizinho perdedor torna-se vazia.
+   * Caso alguma das células escolhidas seja vazia, nada acontece.
+
+O número exato de cada tipo de evento em cada turno é determinado
+aleatoriamente através de uma [distribuição de Poisson], que expressa a
+probabilidade de uma série de eventos ocorrer num certo período de tempo. Uma
+vez que este é um projeto de programação, não é exigido aos alunos que
+compreendam a fundo esta distribuição, apenas que consigam implementar um
+gerador de números aleatórios de Poisson a partir da [distribuição uniforme]
+(sendo esta última dada pelos métodos da classe [Random] do C#).
+
+O Wikipédia sugere [alguns algoritmos](genPoisson) para o efeito, mas apenas
+o segundo, "**algorithm** _poisson random number (Junhao, based on Knuth)_",
+funcionará bem com este modelo . Este algoritmo recebe o valor `λ` (média) e
+devolve um número inteiro que corresponde a um número aleatório de eventos.
+O parâmetro `λ` representa a média dos números aleatórios devolvidos. Na
+parte do algoritmo que diz _Generate uniform random number u  in (0,1)_
+deve ser usado o método [`NextDouble()`] da classe [Random] para obter
+valores aleatórios uniformes entre 0 e 1. Todas as variáveis internas deste algoritmo devem ser `double`, exceto a variável `k` que deve ser
+um `int`. O parâmetro `STEP` deve ser uma constante com o valor 500.
 
 _Em construção_
 
-A simulação termina quando o utilizador pressiona a tecla "Escape".
-
 ## Funcionamento da simulação
+
+A simulação termina quando o utilizador pressiona a tecla "Escape".
 
 ### Opção da linha de comando e ficheiro de parâmetros
 
@@ -263,3 +313,10 @@ Estruturas de Dados][aed] do [Instituto Superior Técnico][ist]*
 [2º projeto de LP1 2018/19]:https://github.com/VideojogosLusofona/lp1_2018_p2_solucao
 [Von Neumann]:https://en.wikipedia.org/wiki/Von_Neumann_neighborhood
 [Pedra, Papel e Tesoura]:https://pt.wikipedia.org/wiki/Pedra,_papel_e_tesoura
+[RPSNetLogo]:http://ccl.northwestern.edu/netlogo/models/RockPaperScissors
+[NetLogo]:http://ccl.northwestern.edu/netlogo
+[distribuição de Poisson]:https://en.wikipedia.org/wiki/Poisson_distribution
+[distribuição uniforme]:https://en.wikipedia.org/wiki/Uniform_distribution_(continuous)
+[Random]:https://docs.microsoft.com/dotnet/api/system.random
+[`NextDouble()`]:https://docs.microsoft.com/dotnet/api/system.random.nextdouble
+[genPoisson]:https://en.wikipedia.org/wiki/Poisson_distribution#Generating_Poisson-distributed_random_variables
