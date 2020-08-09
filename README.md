@@ -27,7 +27,9 @@ O modelo está implementado como [exemplo][RPSNetLogo] no software [NetLogo]
 (aberto e gratuito, também corre diretamente no _browser_), implementação esta
 que pode e deve ser usada como termo de comparação ao projeto desenvolvido.
 
-## Descrição detalhada
+## Descrição
+
+### O modelo de simulação
 
 A simulação corre numa grelha com dimensões (`x`, `y`) toroidal com vizinhança
 de [Von Neumann]. Toroidal significa que a grelha "dá a volta" na vertical e
@@ -53,31 +55,94 @@ turnos e em cada turno podem acontecer os seguintes eventos:
    * A célula do vizinho perdedor torna-se vazia.
    * Caso alguma das células escolhidas seja vazia, nada acontece.
 
+A simulação tem cinco parâmetros:
+
+* `xdim` - Número inteiro que representa a dimensão horizontal da grelha
+  de simulação.
+* `ydim` - Número inteiro que representa a dimensão vertical da grelha
+  de simulação.
+* `swap_rate_exp`, número real entre -1.0 e 1.0, que representa a taxa dos
+  eventos de trocas/movimento.
+* `repr_rate_exp`, número real entre -1.0 e 1.0, que representa a taxa dos
+  eventos de reprodução.
+* `selc_rate_exp`, número real entre -1.0 e 1.0, que representa a taxa dos
+  eventos de seleção.
+
 O número exato de cada tipo de evento em cada turno é determinado
 aleatoriamente através de uma [distribuição de Poisson], que expressa a
 probabilidade de uma série de eventos ocorrer num certo período de tempo. Uma
 vez que este é um projeto de programação, não é exigido aos alunos que
 compreendam a fundo esta distribuição, apenas que consigam implementar um
-gerador de números aleatórios de Poisson a partir da [distribuição uniforme]
-(sendo esta última dada pelos métodos da classe [Random] do C#).
+método que aceite um valor real que representa a média, `λ`, e que devolva
+um número inteiro aleatório obtido através desta distribuição. A secção
+[Gerar inteiros aleatórios a partir da distribuição de Poisson](#gerar-inteiros-aleatórios-a-partir-da-distribuição-de-poisson) discute
+possíveis abordagens. Uma possível declaração deste método é a seguinte:
 
-O Wikipédia sugere [alguns algoritmos](genPoisson) para o efeito, mas apenas
-o segundo, "**algorithm** _poisson random number (Junhao, based on Knuth)_",
-funcionará bem com este modelo . Este algoritmo recebe o valor `λ` (média) e
-devolve um número inteiro que corresponde a um número aleatório de eventos.
-O parâmetro `λ` representa a média dos números aleatórios devolvidos. Na
-parte do algoritmo que diz _Generate uniform random number u  in (0,1)_
-deve ser usado o método [`NextDouble()`] da classe [Random] para obter
-valores aleatórios uniformes entre 0 e 1. Todas as variáveis internas deste algoritmo devem ser `double`, exceto a variável `k` que deve ser
-um `int`. O parâmetro `STEP` deve ser uma constante com o valor 500.
+```cs
+int Poisson(double lambda);
+```
+
+O número exato de eventos em cada turno é então obtido através do método
+`Poisson()`, em que `λ` é dado por:
+
+```cs
+double lambda = (xdim * ydim / 3.0) * Math.Pow(10, rate_exp);
+```
+
+em que `rate_exp` pode ser `swap_rate_exp`, `repr_rate_exp` ou
+`selc_rate_exp`, dependendo do tipo de evento em questão. Por exemplo, o
+número de trocas/movimentos num dado turno pode ser dado por:
+
+```cs
+// Obter o lambda para as trocas/movimentos
+// Notar que este valor é constante ao longo da simulação
+double lambdaSwap = (xdim * ydim / 3.0) * Math.Pow(10, swap_rate_exp);
+
+// Obter o número de trocas/movimentos a efetuar no turno atual
+int numSwaps = Poisson(lambdaSwap);
+```
 
 _Em construção_
 
-## Funcionamento da simulação
+#### Gerar inteiros aleatórios a partir da distribuição de Poisson
+
+Um gerador de números aleatórios obtidos a partir da distribuição de Poisson
+recebe um valor real `λ` (média dos números aleatórios a devolver) e devolve
+um número inteiro que corresponde a um número aleatório de eventos.
+
+A linguagem C# apenas oferece a classe [Random], que produz números aleatórios
+a partir da [distribuição uniforme]. O Wikipédia sugere [alguns
+algoritmos](genPoisson) para obter valores a partir da distribuição de
+Poisson tendo como base a distribuição uniforme. No entanto, apenas o segundo,
+"**algorithm** _poisson random number (Junhao, based on Knuth)_",
+funciona bem com valores elevados de `λ` (algo que vai ocorrer neste projeto).
+Na parte do algoritmo que diz _Generate uniform random number u  in (0,1)_
+pode ser usado o método [`NextDouble()`] da classe [Random] para obter
+valores aleatórios uniformes entre 0 e 1. Todas as variáveis internas deste algoritmo devem ser `double`, exceto a variável `k`, que deve ser
+um `int`. O parâmetro `STEP` deve ser uma constante com o valor 500.
+
+Embora seja preferível os alunos implementarem esta função a partir
+do pseudo-código disponível no Wikipédia, também se aceita o uso de código
+encontrado na Internet com esta funcionalidade. Nesse caso, deve ser feita
+referência à fonte.
+
+#### Embaralhar uma lista ou _array_
+
+O algoritmo
+[Fisher–Yates](https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle)
+é um método de embaralhamento (_shuffling_) tipicamente utilizado para
+embaralhar listas ou _arrays_.
+
+Tal como no caso do gerador de números aleatórios de Poisson, é preferível
+serem os alunos a implementar este algoritmo a partir do pseudo-código
+disponível no Wikipédia. No entanto, também se aceita o uso código
+encontrado na Internet, com a devida referência à fonte.
+
+### Funcionamento da simulação
 
 A simulação termina quando o utilizador pressiona a tecla "Escape".
 
-### Opção da linha de comando e ficheiro de parâmetros
+#### Opção da linha de comando e ficheiro de parâmetros
 
 O programa deve aceitar apenas uma opção na linha de comando, nomeadamente o
 nome do ficheiro que especifica os parâmetros da simulação. Um exemplo de
