@@ -143,7 +143,15 @@ executado para o turno atual.
 
 ### Visualização
 
-_Em construção_
+A visualização deve ser atualizada após todos os eventos de dado turno terem
+sido executados. A visualização pode ser um pouco lenta, pelo que a secção
+[Eficiência do código](#eficiência-do-código) apresenta algumas sugestões
+para melhorar o _frame rate_.
+
+A imagem/vídeo em baixo mostra uma implementação de consola em C# com
+dimensões 300 x 70 e todos os `rates_exp` colocados a zero.
+
+[![Rock Paper Scissors](https://img.youtube.com/vi/uYiQg-rkG6A/hqdefault.jpg)](https://youtu.be/uYiQg-rkG6A)
 
 ### Funcionamento do programa
 
@@ -308,6 +316,12 @@ ser colocada no ficheiro `Simulation.cs`. A estrutura de classes deve ser bem
 pensada e organizada de uma forma lógica, e [cada classe deve ter uma
 responsabilidade específica e bem definida][SRP].
 
+Serão bonificadas soluções em que seja muito simples alterar ou estender o
+modelo, como por exemplo usar outro tipo de vizinhança (por exemplo, para uma
+vizinhança de Moore e/ou uma vizinhança com raio maior) ou ter mais do que
+três espécies. No entanto tal não é de todo obrigatório para obter uma boa
+nota.
+
 ### Eficiência do código
 
 Existem variadíssimas formas de implementar esta simulação corretamente.
@@ -389,6 +403,14 @@ Este projeto tem os seguintes objetivos:
       implementados.
     * Um diagrama UML de classes simples (i.e., sem indicação dos
       membros da classe) descrevendo a estrutura de classes.
+  * Observações e resultados:
+    * Indicar o que acontece ao colocar `swap-rate-exp` a 1.0 deixando as
+      restantes `rate-exp` a zero.
+    * Indicar o que acontece ao colocar `swap-rate-exp` a -1.0 deixando as
+      restantes `rate-exp` a zero.
+    * É possível encontrar algum conjunto de parâmetros que resulte na extinção
+      de uma das espécies? Quando uma espécie se extingue, o que acontece às
+      outras duas?
   * Referências, incluindo trocas de ideias com colegas, código aberto
     reutilizado (e.g., do StackOverflow) e bibliotecas de terceiros
     utilizadas. Devem ser o mais detalhados possível.
