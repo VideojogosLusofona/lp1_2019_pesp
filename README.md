@@ -102,7 +102,124 @@ double lambdaSwap = (xdim * ydim / 3.0) * Math.Pow(10, swap_rate_exp);
 int numSwaps = Poisson(lambdaSwap);
 ```
 
+Uma vez obtido o número de cada tipo de eventos para o turno atual, os mesmos
+devem ser individualmente colocados numa lista, essa lista deve ser
+embaralhada (ver secção
+[Embaralhar uma lista ou _array_](#embaralhar-uma-lista-ou-array)), e
+finalmente percorrida, de modo a que cada evento seja executado. Notar que a
+ideia é que os eventos sejam executados de forma aleatória. Por exemplo, se
+num dado turno devem ser executadas 3 trocas, 4 reproduções e 2 seleções
+(valores obtidos aleatoriamente a partir da distribuição de Poisson), a
+lista com estes eventos deverá ter inicialmente o seguinte aspeto:
+
+```
+Swap
+Swap
+Swap
+Reproduction
+Reproduction
+Reproduction
+Reproduction
+Selection
+Selection
+```
+
+Após o embaralhamento poderá ter outro aspeto:
+
+```
+Reproduction
+Swap
+Reproduction
+Selection
+Reproduction
+Selection
+Swap
+Swap
+Reproduction
+```
+
+Só agora é que a lista deverá ser percorrida, e cada um dos eventos indicados
+executado para o turno atual.
+
+### Visualização
+
 _Em construção_
+
+### Funcionamento do programa
+
+O programa deve aceitar apenas uma opção na linha de comando, nomeadamente o
+nome do ficheiro que especifica os parâmetros da simulação. Um exemplo de
+execução:
+
+```
+dotnet run -- config.txt
+```
+
+A primeira opção, `--`, serve para separar entre as opções do comando `dotnet`
+e as opções do programa a ser executado, neste caso a nossa simulação.
+
+O ficheiro que especifica os parâmetros da simulação deve ter os seguintes
+conteúdos:
+
+* Opção `xdim`, seguida de um inteiro, indica a dimensão horizontal da grelha
+  de simulação.
+* Opção `ydim`, seguida de um inteiro, indica a dimensão vertical da grelha de
+  simulação.
+* Opção `swap-rate-exp`, seguida de um número real (`double`) entre -1.0 e 1.0.
+* Opção `repr-rate-exp`, seguida de um número real (`double`) entre -1.0 e 1.0.
+* Opção `selc-rate-exp`, seguida de um número real (`double`) entre -1.0 e 1.0.
+* Entre cada opção e o seu valor deve existir um espaço.
+* Espaços no início das linhas devem ser ignorados.
+* Linhas em branco ou começadas por `#` ou `//` devem ser ignoradas, pois são
+  consideradas comentários.
+
+As opções indicadas podem ser dadas em qualquer ordem. Se alguma delas for
+omitida o programa deve terminar com uma mensagem de erro indicando a opção em
+falta. Opções desconhecidas ou com valores inválidos também fazem com que o
+programa termine, indicando exatamente qual a linha inválida do ficheiro.
+Exemplo de um ficheiro válido:
+
+```
+# Taxas
+selc-rate-exp -0.02
+swap-rate-exp 0.75
+repr-rate-exp 0.00
+
+# Dimensões
+xdim 100
+ydim 40
+```
+
+Notar que podem existir problemas no _parsing_ dos valores reais devido ao
+separador decimal ser uma vírgula na língua portuguesa (ver secção
+[_Parsing_ de números reais](#parsing-de-números-reais).
+Se as opções forem corretas, a simulação começa imediatamente, não existindo
+quaisquer paragens ou demoras entre turnos. A simulação deve correr o mais
+rapidamente possível (ver secção [Eficiência do código](#eficiência-do-código)).
+
+A simulação termina quando o utilizador pressiona a tecla `Escape`. É possível
+verificar se alguma tecla for pressionada através da propriedade
+[`Console.KeyAvailable`](https://docs.microsoft.com/dotnet/api/system.console.keyavailable), evitando deste modo que o programa fique preso à espera de
+uma tecla.
+
+### Resumo
+
+Resumindo, a simulação é executada de acordo com os seguintes passos:
+
+1. Criar o mundo, cada célula inicializada aleatoriamente (pedra, papel,
+   tesoura, vazia).
+2. Determinar número de eventos de troca/movimento, reprodução e seleção,
+   a partir da distribuição de Poisson tal como explicado na secção
+   anterior.
+3. Colocar numa lista esses eventos, um a um.
+4. Embaralhar a lista.
+5. Percorrer a lista e executar esses eventos, um a um.
+6. Limpar a lista.
+7. Atualizar visualização.
+8. Se utilizador pressionou a tecla `Escape` terminar a simulação, caso
+   contrário voltar para o ponto 2.
+
+### Dicas
 
 #### Gerar inteiros aleatórios a partir da distribuição de Poisson
 
@@ -138,51 +255,47 @@ serem os alunos a implementar este algoritmo a partir do pseudo-código
 disponível no Wikipédia. No entanto, também se aceita o uso código
 encontrado na Internet, com a devida referência à fonte.
 
-### Funcionamento da simulação
+#### _Parsing_ de números reais
 
-A simulação termina quando o utilizador pressiona a tecla "Escape".
+De modo a converter uma _string_ num número real (neste caso, um `double`),
+usa-se tipicamente uma das seguintes abordagens:
 
-#### Opção da linha de comando e ficheiro de parâmetros
-
-O programa deve aceitar apenas uma opção na linha de comando, nomeadamente o
-nome do ficheiro que especifica os parâmetros da simulação. Um exemplo de
-execução:
-
-```
-dotnet run -- config.txt
+```cs
+// s é uma string, x é um double
+x = Convert.ToDouble(s);   // Abordagem 1
+x = double.Parse(s);       // Abordagem 2
+double.TryParse(s, out x); // Abordagem 3 (preferida)
 ```
 
-A primeira opção, `--`, serve para separar entre as opções do comando `dotnet`
-e as opções do programa a ser executado, neste caso a nossa simulação.
+A última forma é a preferida, pois permite-nos verificar se a conversão foi
+inválida. No entanto pode ocorrer um problema caso o PC esteja configurado com
+a língua portuguesa, na qual o separador decimal é uma vírgula e não um ponto.
+Para evitar este problema, podemos indicar ao C# que pretendemos uma conversão
+independente da língua configurada no computador, assumindo o separador
+decimal como um ponto:
 
-O ficheiro que especifica os parâmetros da simulação deve ter os seguintes
-conteúdos:
+```cs
+// Requer using extra no início da classe
+using System.Globalization;
+//...
+// s é uma string, x é um double
+x = Convert.ToDouble(s, CultureInfo.InvariantCulture);               // Abordagem 1
+x = double.Parse(s, NumberStyles.Any, CultureInfo.InvariantCulture); // Abordagem 2
+double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out x); // Abordagem 3 (preferida)
+```
 
-* Opção `xdim`, seguida de um inteiro, indica a dimensão horizontal da grelha
-  de simulação.
-* Opção `ydim`, seguida de um inteiro, indica a dimensão vertical da grelha de
-  simulação.
-* Opção `swap-rate-exp`, seguida de um número real (`double`) entre -1.0 e 1.0.
-* Opção `repr-rate-exp`, seguida de um número real (`double`) entre -1.0 e 1.0.
-* Opção `selc-rate-exp`, seguida de um número real (`double`) entre -1.0 e 1.0.
-* Espaços no início das linhas devem ser ignorados.
-* Linhas em branco ou começadas por `#` ou `//` devem ser ignoradas, pois são
-  consideradas comentários.
+Notar que a abordagem com `TryParse()` é normalmente usada com um `if`:
 
-As opções indicadas podem ser dadas em qualquer ordem. Se alguma delas for
-omitida o programa deve terminar com uma mensagem de erro indicando a opção em
-falta. Opções desconhecidas ou com valores inválidos também fazem com que o
-programa termine, indicando exatamente qual a linha inválida do ficheiro.
-
-### Visualização
-
-_Em construção_
-
-### Resumo
-
-Resumindo, a simulação é executada de acordo com os seguintes passos:
-
-_Em construção_
+```cs
+if (double.TryParse(...))
+{
+    // Conversão feita com sucesso
+}
+else
+{
+    // Conversão falhou
+}
+```
 
 ## Requisitos do código
 
@@ -200,7 +313,17 @@ responsabilidade específica e bem definida][SRP].
 Existem variadíssimas formas de implementar esta simulação corretamente.
 Soluções mais eficientes (que executem a simulação mais rapidamente) serão
 bonificadas na nota. Todas as otimizações implementadas devem ser mencionadas
-no relatório.
+no relatório. Algumas sugestões:
+
+* Atualizar apenas as células que foram modificadas e não todas.
+* Atualizar o mundo de uma só vez (com um único `Console.Write()`), pré-criando
+  uma _string_ com todos os seus conteúdos (isto requer o uso de [sequências de
+  _escape_ ANSI](https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences), indo além da formatação de cores
+  disponível na classe `Console`).
+
+Estas otimizações só devem ser efetuadas após a simulação estar completamente
+funcional, e é perfeitamente possível ter nota máxima, ou perto disso, sem a
+implementação das mesmas.
 
 ### Requisitos de multi-plataforma
 
